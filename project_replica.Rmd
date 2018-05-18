@@ -15,7 +15,8 @@ if(!require(gtools,quietly = TRUE)){
   library(gtools)
 }
 
-setwd("M:/yuliang/project1")
+
+#setwd("M:/yuliang/project1")
 #datals=read.csv('datals.csv')
 datalsnew=read.csv('datalsnew.csv')
 ```
@@ -31,7 +32,7 @@ colnames(datalsnew)
 #shared frailty model for terminal event CRC
 ```{r}
 #shared frailty model for terminal event CRC
-CRC.SF=frailtyPenal(Sur v(t_start0,t_stop0,CRC)~
+CRC.SF=frailtyPenal(Surv(t_start0,t_stop0,CRC)~
                  cluster(famid)+
                  firstvisitage+
                  probandage_trans+
@@ -46,6 +47,7 @@ CRC.SF=frailtyPenal(Sur v(t_start0,t_stop0,CRC)~
 #using @cnvisit_crc instead of @cnvisit_crc_10
 
 ```
+
 ```{r}
 summary(CRC.SF)
 ```
@@ -234,8 +236,74 @@ def_person = function(gaptime,idnew=0,famid,firstvisitage,
   fistvisitage_trans = (firstvisitage-40)/10
   probandage = unique(datals$probandage[datals$famid==famid])
   probandage_trans = unique(datals$probandage_trans[datals$famid==famid])
+  visitnum = ifelse(gaptime==1,10,ifelse(gaptime==3,5,ifelse(gaptime==4,4,0)))
+  
+  if(gaptime==1){visit = c(1,1,1,1,1,1,1,1,1,0)}
+  if(gaptime==2){visit = c(1,1,1,1,1,0)}
+  if(gaptime==3){visit = c(1,1,1,1,0)}
+  if(gaptime==4){visit = c(1,1,1,0)}
+  
+  #inlude the visit before time point 10:
+  if(gaptime==1){t_start0 = c(0:8,8)}
+  if(gaptime==2){t_start0 = c(0,2,4,6,8,8)}
+  if(gaptime==3){t_start0 = c(0,3,6,9,9)}
+  if(gaptime==4){t_start0 = c(0,4,8,8)}
+  
+  t_stop0 = t_start0+gaptime
+  # define longitudinal CRC indicator
+  if(CRC_ind==1){CRC = c(rep(0,(visitnum-1)),1)}
+  if(CRC_ind==0){CRC = rep(0,visitnum)}
+  # define polyp type variables
+  if(adenoma_beforecrc==1){
+    polyp_adenoma = c(1,0,1,rep(0,(visitnum-3)))
+    cum_adenoma = c(1,0,1,rep(0,visitnum-3))
+    cum_adenoma_prev = c(0,1,0,1,rep(0,visitnum-4))
+    num_adenoma_beforecrc = rep(2,visitnum)
+  }
+  if(adenoma_beforecrc==0){
+    polyp_adenoma = rep(0,visitnum)
+    cum_adenoma = rep(0,visitnum)
+    cum_adenoma_prev = rep(0,visitnum)
+    num_adenoma_beforecrc = rep(0,visitnum)
+  }
+  
+  if(serrated_beforecrc==1){
+    polyp_serrated = c(1,0,1,rep(0,(visitnum-3)))
+    cum_serrated = c(1,0,1,rep(0,visitnum-3))
+    cum_serrated_prev = c(0,1,0,1,rep(0,visitnum-4))
+    num_serrated_beforecrc = rep(2,visitnum)
+  }
+  if(serrated_beforecrc==0){
+    polyp_serrated = rep(0,visitnum)
+    cum_serrated = rep(0,visitnum)
+    cum_serrated_prev = rep(0,visitnum)
+    num_serrated_beforecrc = rep(0,visitnum)
+  }
+  
+  if(others_beforecrc==1){
+    polyp_others = c(1,0,1,rep(0,(visitnum-3)))
+    cum_others = c(1,0,1,rep(0,visitnum-3))
+    cum_others_prev = c(0,1,0,1,rep(0,visitnum-4))
+    num_others_beforecrc = rep(2,visitnum)
+  }
+  if(others_beforecrc==0){
+    polyp_others = rep(0,visitnum)
+    cum_others = rep(0,visitnum)
+    cum_others_prev = rep(0,visitnum)
+    num_others_beforecrc = rep(0,visitnum)
+  }
+  
+  polyp_event = ifelse( (polyp_adenoma==1|polyp_serrated==1|polyp_others==1) ,1,0)
+  num_nonade_beforecrc = num_serrated_beforecrc + num_others_beforecrc
+  cum_nonade_prev = cum_serrated_prev+cum_others_prev
+  
+  cnvisit = c(1:(visitnum-1),visitnum-1)
+  cnvisit_crc_10 = cnvisit/10
+  
+  #define age at visit
+  
+  
 }
-
 
 ```
 
