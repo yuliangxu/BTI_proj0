@@ -6,10 +6,17 @@ output: html_document
 ---
 #set up
 ```{r setup, include=FALSE, echo=FALSE}
-library(frailtypack)
-library(gtools)
-setwd("C:/Users/sdzzx/OneDrive/BTI/project1")
-datals=read.csv('datals.csv')
+if(!require(frailtypack,quietly = TRUE)){
+  install.packages("frailtypack")
+  library(frailtypack)
+}
+if(!require(gtools,quietly = TRUE)){
+  install.packages("gtools")
+  library(gtools)
+}
+
+setwd("M:/yuliang/project1")
+#datals=read.csv('datals.csv')
 datalsnew=read.csv('datalsnew.csv')
 ```
 #data explore
@@ -24,14 +31,13 @@ colnames(datalsnew)
 #shared frailty model for terminal event CRC
 ```{r}
 #shared frailty model for terminal event CRC
-CRC.SF=frailtyPenal(Surv(t_start0,t_stop0,CRC)~
+CRC.SF=frailtyPenal(Sur v(t_start0,t_stop0,CRC)~
                  cluster(famid)+
                  firstvisitage+
                  probandage_trans+
                  gender+
                  num_adenoma_beforecrc+
                  cnvisit_crc_10,
-               
                data=datalsnew,
                hazard = "Splines-per",
                n.knots = 5,
@@ -46,15 +52,13 @@ summary(CRC.SF)
 #joint frailty model for terminal event CRC and recurrent polyps
 ```{r}
 #joint frailty model for terminal event CRC and recurrent polyps
-table(datals$firstvisitage_trans)
-table(datals$polyp)
-table(datals$polyp_test)
+
 #?? how to choose the covariates?
-CRC.polyps.JF = frailtyPenal(Surv(t.start0,t.stop0,polyp)~#polyp_event??
+CRC.polyps.JF = frailtyPenal(Surv(t_start0,t_stop0,polyp_event)~#polyp_event??
                                cluster(idnew)+
                                firstvisitage_trans+
                                age_prev_trans+
-                               cum_adenoma+#cum_adenoma_prev
+                               cum_adenoma_prev+#cum_adenoma_prev
                                probandage_trans+
                                gender+
                                terminal(CRC),
@@ -69,15 +73,16 @@ CRC.polyps.JF = frailtyPenal(Surv(t.start0,t.stop0,polyp)~#polyp_event??
                              n.knots = 5,
                              kappa = c(6.47498, 9.74423e-19),
                              maxit = 40,
-                             data=datals)
+                             data=datalsnew)
 ```
+
 ```{r}
 summary(CRC.polyps.JF)
 ```
 #Joint nested frailty model for terminal event CRC and recurrent polyp
 ```{r}
 #Joint nested frailty model for terminal event CRC and recurrent polyp
-CRC.polyps.JNF = frailtyPenal(Surv(t.start0,t.stop0,polyp)~
+CRC.polyps.JNF = frailtyPenal(Surv(t_start0,t.stop0,polyp)~
                                 subcluster(idnew)+
                                 cluster(famid)+
                                 firstvisitage_trans+
@@ -95,11 +100,13 @@ CRC.polyps.JNF = frailtyPenal(Surv(t.start0,t.stop0,polyp)~
                             kappa = c(6.47498, 9.74423e-19),
                             maxit = 40,
                             initialize = T,
-                            data = datals)
+                            data = datalsnew)
 ```
+
 ```{r}
 summary(CRC.polyps.JNF)
 ```
+
 #Martingale residual plots for Joint nested frailty model
 ```{r}
 #Martingale residual plots for Joint nested frailty model
@@ -137,7 +144,7 @@ axis(2, round(seq(0,15,length = 10), digits = 1))
 #Brier score for prediction error part1
 ```{r}
 #Brier score for prediction error part1
-datasub = datals
+datasub = datalsnew
 predtime = 1
 window = seq(1,25,1)
 fwindow = predtime + window
@@ -170,11 +177,11 @@ for(i in 1:6){
     datasub1 = datasub[!datasub$famid %in% c(201:242),]
   }
   #Brier score for prediction error part2
-  CRC.polyps.JF5 = frailtyPenal(Surv(t.start0,t.stop0,polyp)~#polyp_event??
+  CRC.polyps.JF5 = frailtyPenal(Surv(t_start0,t_stop0,polyp_event)~#polyp_event??
                                cluster(idnew)+
                                firstvisitage_trans+
                                age_prev_trans+
-                               cum_adenoma+#cum_adenoma_prev??
+                               cum_adenoma_prev+#cum_adenoma_prev
                                probandage_trans+
                                gender+
                                terminal(CRC),
@@ -182,7 +189,6 @@ for(i in 1:6){
                              formula.terminalEvent=
                                ~firstvisitage_trans+
                                num_adenoma_beforecrc+
-                            #num_nonade_beforecrc
                                probandage_trans+
                                gender,
                              
@@ -192,7 +198,7 @@ for(i in 1:6){
                              maxit = 40,
                              data=datasub1#different from JF
                             )
-  
+   
   #Extract the time-to-CRC
   datapred1$timetocrc = na.replace(datapred1$timetocrc,100)#replace na    with 100? why??
   timetocrc.vec = aggregate(datapred1[,c('timetocrc')],list(datapred1$idnew),mean)
