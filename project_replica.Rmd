@@ -301,9 +301,29 @@ def_person = function(gaptime,idnew=0,famid,firstvisitage,
   cnvisit_crc_10 = cnvisit/10
   
   #define age at visit
-  
+  if(gaptime==1){
+    age_prev_tans = c((firstvisitage+(0:8)-46)/10,(firstvisitage+8-46)/10)
+  }
+  if(gaptime==2){
+    age_prev_tans = (firstvisitage+c(0,2,4,6,8,8)-46)/10
+  }
+  if(gaptime==3){
+    age_prev_tans = (firstvisitage+c(0,3,6,9,9)-46)/10
+  }
+  if(gaptime==4){
+    age_prev_tans = (firstvisitage+c(0,4,8,8)-46)/10
+  }
   
 }
+
+# create one person
+
+# for ( i in 1:visitnum){
+#   test.data[i,1] = 
+# }
+
+# combine with original data as follows:
+datnew = rbind(test.data, datals_part)
 
 ```
 
