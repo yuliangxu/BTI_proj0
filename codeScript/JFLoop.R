@@ -101,6 +101,12 @@ for(i in 1:6){
 
 
 
+matplot(t(matsum1[1:10,]), type = c("l"),pch=1,col = 1:10,
+        xlab = "time",
+        ylab = "Brier Score") #plot
+#legend("topleft", legend = 1:4, col=1:4, pch=1) # optional legend
+
+
 #====joint frailty model for terminal event CRC and recurrent polyps==========
 
 #?? how to choose the covariates?

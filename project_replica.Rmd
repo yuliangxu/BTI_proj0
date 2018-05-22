@@ -20,13 +20,17 @@ if(!require(gtools,quietly = TRUE)){
 #datals=read.csv('datals.csv')
 datalsnew=read.csv('datalsnew.csv')
 ```
+
 #data explore
+
 ```{r}
 #data explore
 
 colnames(datalsnew)
 ```
+
 #shared frailty model for terminal event CRC
+
 ```{r}
 #shared frailty model for terminal event CRC
 CRC.SF=frailtyPenal(Surv(t_start0,t_stop0,CRC)~
@@ -124,8 +128,12 @@ lines(lowess(aggregate(datalsnew$t_start0,
             f=1),
      lwd = 3,
      col = "red")
+
+#CRC.polyps.JNF$martingale.res varies each time
 ```
+
 #Scatter plots for predicted individual frailty values
+
 ```{r}
 #Scatter plots for predicted individual frailty values
 datanew = datalsnew[!datalsnew$polyp_event==0,c('idnew')] #select polyp = T indivi
@@ -139,8 +147,11 @@ plot(idcount, CRC.polyps.JNF$frailty.pred,
      axes = F, cex = 1.5, pch = 1)
 axis(1, round(seq(0,15,length = 10), digits = 0))
 axis(2, round(seq(0,15,length = 10), digits = 1))
+
 ```
+
 #Brier score for prediction error part1
+
 ```{r}
 #Brier score for prediction error part1
 datasub = datalsnew
@@ -313,7 +324,7 @@ def_person = function(gaptime,idnew=0,famid,firstvisitage,
   
   # create one person
   # ???? what is test.data???
-  #test.data=matrix(rep(NA,visitnum),)
+  test.data=matrix(rep(NA,visitnum*21),nrow=visitnum)
   for (i in 1:visitnum){
     test.data[i,] = c(t_start0[i],t_stop0[i],visit[i],idnew,famid,gender,
                     CRC[i],cnvisit_crc_10[i],firstvisitage,
@@ -328,7 +339,9 @@ def_person = function(gaptime,idnew=0,famid,firstvisitage,
   }
 
   # combine with original data as follows:
-  datnew = rbind(test.data, datals_part)
+  # datnew = rbind(test.data, datals_part)
+  #????datals_part
+  datnew = test.data
   datnew = datnew[order(datnew$famid,datnew$idnew,as.numeric(datnew$age_prev_trans)),]
   
 }
