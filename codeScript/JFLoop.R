@@ -12,8 +12,13 @@ if(!require(gtools,quietly = TRUE)){
 #setwd("M:/yuliang/project1")
 #datals=read.csv('datals.csv')
 datalsnew=read.csv('datalsnew.csv')
-
-
+#=====EDA=============
+str(datalsnew)
+cbind(datalsnew$idnew,
+      datalsnew$t_start0,
+      datalsnew$t_stop0 ,
+      datalsnew$polyp_event)[1:10,]
+table(datalsnew$polyp_event)
 #=======Brier score====================
 #Brier score for prediction error part1
 datasub = datalsnew

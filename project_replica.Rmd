@@ -241,7 +241,7 @@ for(i in 1:6){
 def_person = function(gaptime,idnew=0,famid,firstvisitage,
                       adenoma_beforecrc,serrated_beforecrc,
                       others_beforecrc,gender,CRC_ind,event_indic=0){
-  fistvisitage_trans = (firstvisitage-40)/10
+  firstvisitage_trans = (firstvisitage-40)/10
   probandage = unique(datalsnew$probandage[datalsnew$famid==famid])
   probandage_trans = unique(datalsnew$probandage_trans[datalsnew$famid==famid])
   visitnum = ifelse(gaptime==1,10,ifelse(gaptime==3,5,ifelse(gaptime==4,4,0)))
@@ -310,39 +310,50 @@ def_person = function(gaptime,idnew=0,famid,firstvisitage,
   
   #define age at visit
   if(gaptime==1){
-    age_prev_tans = c((firstvisitage+(0:8)-46)/10,(firstvisitage+8-46)/10)
+    age_prev_trans = c((firstvisitage+(0:8)-46)/10,(firstvisitage+8-46)/10)
   }
   if(gaptime==2){
-    age_prev_tans = (firstvisitage+c(0,2,4,6,8,8)-46)/10
+    age_prev_trans = (firstvisitage+c(0,2,4,6,8,8)-46)/10
   }
   if(gaptime==3){
-    age_prev_tans = (firstvisitage+c(0,3,6,9,9)-46)/10
+    age_prev_trans = (firstvisitage+c(0,3,6,9,9)-46)/10
   }
   if(gaptime==4){
-    age_prev_tans = (firstvisitage+c(0,4,8,8)-46)/10
+    age_prev_trans = (firstvisitage+c(0,4,8,8)-46)/10
   }
   
   # create one person
   # ???? what is test.data???
-  test.data=matrix(rep(NA,visitnum*21),nrow=visitnum)
+  test.data=matrix(rep(NA,visitnum*23),nrow=visitnum)
   for (i in 1:visitnum){
     test.data[i,] = c(t_start0[i],t_stop0[i],visit[i],idnew,famid,gender,
                     CRC[i],cnvisit_crc_10[i],firstvisitage,
-                    #firstvisitage_trans,
-                    #age_prev_trans[i],
+                    firstvisitage_trans,
+                    age_prev_trans[i],
                     probandage,probandage_trans,
                     cum_adenoma_prev[i],cum_serrated_prev[i],cum_others_prev[i],
                     cum_nonade_prev[i],polyp_event[i],num_adenoma_beforecrc[i],
                     num_serrated_beforecrc[i],num_others_beforecrc[i],
                     num_nonade_beforecrc[i],event_indic
     )
+    
   }
+  test.data=as.data.frame(test.data)
+  colnames(test.data)=c("t_start0","t_stop0","visit","idnew","famid",
+                        "gender","CRC","cnvisit_crc_10","firstvisitage",
+                        "firstvisitage_trans","age_prev_trans",
+                        "probandage","probandage_trans",
+                        "cum_adenoma_prev","cum_serrated_prev",
+                        "cum_others_prev","cum_nonade_prev","polyp_event",
+                        "num_adenoma_beforecrc","num_serrated_beforecrc",
+                        "num_others_beforecrc","num_nonade_beforecrc",
+                        "event_indic")
 
   # combine with original data as follows:
   # datnew = rbind(test.data, datals_part)
   #????datals_part
   datnew = test.data
-  datnew = datnew[order(datnew$famid,datnew$idnew,as.numeric(datnew$age_prev_trans)),]
+  # datnew = datnew[order(datnew$famid,datnew$idnew,as.numeric(datnew$age_prev_trans)),]
   
 }
 ```
@@ -350,19 +361,19 @@ def_person = function(gaptime,idnew=0,famid,firstvisitage,
 
 ```{r}
 ##= plot for dynamic prediction with effect of different gender
-dp_nested_gender = function(data1, data2, jointnested, famid,id,xlim=c(0,15),
-                            ylim=c(0,1)){
+dp_nested_gender = function(data1, data2, jointnested, famid,id,xlim=c(0,15),ylim=c(0,1)){
+  
   datapred_nested1 = data1[which(data1$famid==famid),]
   datapred_nested2 = data2[which(data2$famid==famid),]
   ti = c(0,2,5,10)
-  for( to in ti){
+  for( t0 in ti){
     pred_n1 = prediction(fit = jointnested, data=datapred_nested1,t=t0,
                          window=1:(15-t0),event = "Terminal", conditional = F,
                          individual = id, MC.sample = 500)
-    pred_n2 = prediction(fit = jointnested, data=datapred_nested,t=t0,
+    pred_n2 = prediction(fit = jointnested, data=datapred_nested2,t=t0,
                          window=1:(15-t0),event = "Terminal", conditional = F,
                          individual = id, MC.sample = 500)
-  }
+  
    
   plot(t0:15, c(0,pred_n1$pred[c(1:(15-t0))]),
        xlim=xlim, ylim=ylim, xlab = "Time since the first visit",
@@ -382,6 +393,7 @@ dp_nested_gender = function(data1, data2, jointnested, famid,id,xlim=c(0,15),
   title(cex.main =1, paste("prediction time=",t0))
   legend("topleft",c("male","female"),lty=c(1,1),col=c("green","red"),
          bty="n",cex=1.1,pch=c(NA,NA))
+  }
 }
 
 
@@ -396,6 +408,7 @@ datnew_male = def_person(gaptime=1, idnew=0,
                          serrated_beforecrc = 1,
                          others_beforecrc = 1,
                          gender = 1,CRC_ind = 1)
+datnew_male
 #data2 only gender difference
 datnew_female = def_person(gaptime=1, idnew=0, 
                          famid = 58,firstvisitage=25,
